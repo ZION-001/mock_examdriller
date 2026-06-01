@@ -1,0 +1,964 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ExamDriller</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: #F1F3F4;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Top Bar */
+  .topbar {
+    background: #FFFFFF;
+    padding: 12px 16px 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    flex-shrink: 0;
+  }
+
+  .topbar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+  }
+
+  /* Logo + brand */
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .logo-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    /* fallback if image missing */
+    background: linear-gradient(135deg, #1A56A0 50%, #7DC242 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  }
+  .logo-circle img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  .logo-fallback {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1;
+    user-select: none;
+  }
+
+  .topbar h1 {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    line-height: 1;
+  }
+
+  .topbar h1 .blue  { color: #1A56A0; }
+  .topbar h1 .green { color: #7DC242; }
+
+  /* Greeting bar above search */
+  .greeting-bar {
+    padding: 2px 2px 8px;
+  }
+  .greeting-bar .greeting-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #202124;
+  }
+  .greeting-bar .greeting-sub {
+    font-size: 11px;
+    color: #9AA0A6;
+    margin-top: 1px;
+  }
+
+  /* Topbar search bar */
+  .topbar-search {
+    background: #F1F3F4;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    padding: 11px 14px;
+    gap: 9px;
+    margin-bottom: 10px;
+    cursor: text;
+  }
+  .topbar-search svg { flex-shrink: 0; color: #9AA0A6; }
+  .topbar-search-hint {
+    font-size: 13px;
+    color: #9AA0A6;
+  }
+
+  /* Top-right icon buttons */
+  .topbar-icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .icon-btn:active { opacity: 0.6; }
+
+  .icon-btn.ai   { background: #EEF3FB; }
+  .icon-btn.prof { background: #F1F3F4; }
+  .icon-btn.theme { background: #F1F3F4; }
+
+  /* Activation Pill */
+  .act-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 36px;
+    background: #FFF8EE;
+    border-radius: 20px;
+    padding: 0 10px 0 7px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.35s ease;
+    overflow: hidden;
+  }
+  .act-pill:active { opacity: 0.7; }
+  .act-pill.activated { background: #EDFAF1; }
+
+  .act-icon-wrap {
+    width: 20px; height: 20px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .act-icon-wrap svg {
+    position: absolute;
+    top: 0; left: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .act-icon-wrap .icon-check {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  .act-pill.activated .icon-key {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  .act-pill.activated .icon-check {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .act-text-clip {
+    overflow: hidden;
+    height: 15px;
+  }
+  .act-slider {
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .act-pill.activated .act-slider { transform: translateY(-15px); }
+  .act-slider span {
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    line-height: 15px;
+    height: 15px;
+  }
+  .act-slider .txt-inactive { color: #F9AB00; }
+  .act-slider .txt-active   { color: #2E7D32; }
+
+  /* Tab Nav */
+  .top-nav {
+    display: flex;
+  }
+
+  .nav-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 7px 0;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .nav-tab svg { width: 19px; height: 19px; color: #5F6368; }
+  .nav-tab span { font-size: 10px; color: #5F6368; font-weight: 500; }
+
+  .nav-tab.active { border-bottom: 3px solid #1A56A0; }
+  .nav-tab.active svg { color: #1A56A0; }
+  .nav-tab.active span { color: #1A56A0; font-weight: 700; }
+
+  /* Section Label */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #5F6368;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 12px 16px 8px;
+    flex-shrink: 0;
+  }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 10px;
+    padding: 0 14px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .card {
+    background: #FFFFFF;
+    border-radius: 14px;
+    padding: 16px 14px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card:active { transform: scale(0.96); }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  /* Unified brand colors only — blue and green */
+  .card.c-blue::before  { background: #1A56A0; }
+  .card.c-green::before { background: #7DC242; }
+  .card.c-amber::before { background: #1A56A0; }
+  .card.c-red::before   { background: #7DC242; }
+  .card.c-teal::before  { background: #1A56A0; }
+  .card.c-lblue::before { background: #7DC242; }
+
+  /* Dots removed */
+  .card-dot { display: none; }
+
+  /* Card arrow — fills dead space, signals tappability */
+  .card-arrow {
+    margin-top: auto;
+    padding-top: 10px;
+    font-size: 14px;
+    color: #C4C7CC;
+    line-height: 1;
+    align-self: flex-end;
+  }
+  body.dark .card-arrow { color: #3C3F48; }
+
+  /* Theme icon color */
+  .icon-btn.theme svg { color: #5F6368; }
+
+  .card-icon { margin-bottom: 8px; }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #202124;
+  }
+
+  .card-sub {
+    font-size: 10px;
+    color: #5F6368;
+    margin-top: 3px;
+  }
+
+  /* Bottom Strip */
+  .bottom-strip {
+    display: flex;
+    align-items: center;
+    margin: 10px 14px 14px;
+    background: #FFFFFF;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .strip-card {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .strip-card:active { opacity: 0.7; }
+
+  .strip-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .streak .strip-icon   { background: #FEF9EE; }
+  .countdown .strip-icon { background: #EEF3FB; }
+
+  .strip-text { display: flex; flex-direction: column; }
+
+  .strip-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #202124;
+    line-height: 1;
+  }
+
+  .strip-label {
+    font-size: 10px;
+    color: #5F6368;
+    margin-top: 2px;
+  }
+
+  .strip-divider {
+    width: 1px;
+    height: 36px;
+    background: #E8EAED;
+    flex-shrink: 0;
+  }
+
+  /* ── Dark Mode ── */
+  body.dark { background: #111318; }
+
+  body.dark .topbar {
+    background: #1E2128;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+  }
+
+  body.dark .topbar p { color: #9AA0A6; }
+  body.dark .topbar-search { background: #2C2F38; }
+  body.dark .topbar-search-hint { color: #5F6368; }
+  body.dark .topbar-search svg { color: #5F6368; }
+  body.dark .greeting-bar .greeting-text { color: #E8EAED; }
+  body.dark .greeting-bar .greeting-sub { color: #5F6368; }
+
+  body.dark .nav-tab svg { color: #9AA0A6; }
+  body.dark .nav-tab span { color: #9AA0A6; }
+  body.dark .nav-tab.active { border-bottom-color: #4F8EE8; }
+  body.dark .nav-tab.active svg { color: #4F8EE8; }
+  body.dark .nav-tab.active span { color: #4F8EE8; }
+
+  body.dark .icon-btn.key  { background: #2C2710; }
+  body.dark .icon-btn.prof { background: #1E2128; }
+  body.dark .icon-btn.theme svg { color: #C4C7CC; }
+  body.dark .act-pill { background: #2A2410; }
+  body.dark .act-pill.activated { background: #0D2116; }
+  body.dark .act-slider .txt-active { color: #66BB6A; }
+
+  body.dark .section-label { color: #5F6368; }
+
+  body.dark .card {
+    background: #1E2128;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2);
+  }
+  body.dark .card-title { color: #E8EAED; }
+  body.dark .card-sub   { color: #9AA0A6; }
+
+  body.dark .bottom-strip {
+    background: #1E2128;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2);
+  }
+  body.dark .strip-value { color: #E8EAED; }
+  body.dark .strip-label { color: #9AA0A6; }
+  body.dark .strip-divider { background: #2C2F38; }
+  body.dark .streak .strip-icon   { background: #2C2710; }
+  body.dark .countdown .strip-icon { background: #1A2340; }
+
+  /* theme toggle tab tint */
+  body.dark .nav-tab.theme-tab svg { color: #9AA0A6; }
+  body.dark .nav-tab.theme-tab.active svg { color: #4F8EE8; }
+
+  .streak-emoji {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  /* ── WhatsApp Channel Modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(3px);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .modal-sheet {
+    background: #fff;
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-width: 480px;
+    padding: 0 0 32px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .modal-overlay.show .modal-sheet {
+    transform: translateY(0);
+  }
+  body.dark .modal-sheet {
+    background: #1E2128;
+  }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: #E8EAED;
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  body.dark .modal-handle { background: #2C2F38; }
+
+  .modal-confetti-zone {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 160px;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    opacity: 0;
+    animation: confettiFall 2.4s ease-in forwards;
+  }
+  @keyframes confettiFall {
+    0%   { opacity: 1; transform: translateY(-20px) rotate(0deg); }
+    80%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(160px) rotate(720deg); }
+  }
+
+  .modal-emoji-burst {
+    text-align: center;
+    font-size: 52px;
+    margin: 24px 0 4px;
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+  }
+  @keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  .modal-title {
+    text-align: center;
+    font-size: 19px;
+    font-weight: 800;
+    color: #202124;
+    padding: 0 24px;
+    animation: fadeUp 0.4s ease 0.3s both;
+  }
+  body.dark .modal-title { color: #E8EAED; }
+
+  .modal-desc {
+    text-align: center;
+    font-size: 13px;
+    color: #5F6368;
+    padding: 6px 28px 0;
+    line-height: 1.5;
+    animation: fadeUp 0.4s ease 0.4s both;
+  }
+  body.dark .modal-desc { color: #9AA0A6; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-wa-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 22px 24px 0;
+    background: #25D366;
+    color: #fff;
+    border-radius: 14px;
+    padding: 15px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(37,211,102,0.4);
+    animation: fadeUp 0.4s ease 0.5s both;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .modal-wa-btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(37,211,102,0.3);
+  }
+
+  .modal-dismiss {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 13px;
+    color: #9AA0A6;
+    cursor: pointer;
+    animation: fadeUp 0.4s ease 0.6s both;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .modal-dismiss:active { opacity: 0.6; }
+
+  .modal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #EDFAF1;
+    color: #2E7D32;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 4px 10px;
+    margin: 10px auto 0;
+    animation: fadeUp 0.4s ease 0.45s both;
+  }
+  body.dark .modal-badge { background: #0D2116; color: #66BB6A; }
+  .modal-badge-wrap { text-align: center; }
+
+  /* Pulse ring on WA icon */
+  .wa-icon-wrap {
+    position: relative;
+    width: 24px; height: 24px;
+    flex-shrink: 0;
+  }
+  .wa-pulse {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    animation: pulse 1.6s ease-out infinite;
+  }
+  @keyframes pulse {
+    0%   { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="topbar-row">
+    <div class="topbar-brand">
+      <div class="logo-circle" id="logoCir">
+        <img src="logo.png" alt="logo" onerror="this.style.display='none'; document.getElementById('logoFb').style.display='flex'">
+        <span class="logo-fallback" id="logoFb" style="display:none">E</span>
+      </div>
+      <h1><span class="blue">Exam</span><span class="green">Driller</span></h1>
+    </div>
+    <div class="topbar-icons">
+      <!-- Activation Pill -->
+      <div class="act-pill" id="actPill" onclick="toggleActivation()">
+        <div class="act-icon-wrap">
+          <svg class="icon-key" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F9AB00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="7.5" cy="15.5" r="5.5"/>
+            <path d="M21 2l-9.6 9.6"/>
+            <path d="M15.5 7.5l3 3L22 7l-3-3"/>
+          </svg>
+          <svg class="icon-check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div class="act-text-clip">
+          <div class="act-slider" id="actSlider">
+            <span class="txt-inactive">Not Activated</span>
+            <span class="txt-active">Activated</span>
+          </div>
+        </div>
+      </div>
+      <!-- Theme Toggle -->
+      <div class="icon-btn theme" onclick="toggleTheme()" id="themeBtn">
+        <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </div>
+      <!-- Profile -->
+      <div class="icon-btn prof" onclick="tap('Profile')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5F6368" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Greeting (separate from search) -->
+  <div class="greeting-bar">
+    <div class="greeting-text" id="greetingText">Good Morning, Victor 👋</div>
+    <div class="greeting-sub">What are you studying today?</div>
+  </div>
+
+  <!-- Search bar -->
+  <div class="topbar-search" onclick="tap('Search')">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <div class="topbar-search-hint">Search subjects, topics...</div>
+  </div>
+
+  <!-- Tab Nav -->
+  <div class="top-nav">
+    <div class="nav-tab active">
+      <svg viewBox="0 0 24 24" fill="#1A56A0" stroke="none"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>Home</span>
+    </div>
+    <div class="nav-tab" onclick="tap('StudyGroup')">
+      <svg viewBox="0 0 24 24" fill="#25D366" stroke="none">
+        <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.95 7.95 0 0 1-4.077-1.117l-.292-.174-3.037.903.903-3.037-.174-.292A7.95 7.95 0 0 1 4 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8zm4.406-5.884c-.241-.12-1.427-.703-1.648-.784-.221-.08-.382-.12-.543.12-.16.241-.623.784-.764.944-.14.161-.281.181-.522.06-.241-.12-1.018-.375-1.938-1.196-.716-.638-1.2-1.426-1.34-1.667-.14-.241-.015-.371.106-.491.108-.108.241-.281.362-.422.12-.14.16-.241.241-.402.08-.16.04-.301-.02-.422-.06-.12-.543-1.308-.744-1.791-.196-.47-.396-.406-.543-.414l-.462-.008c-.16 0-.422.06-.643.301-.221.241-.843.824-.843 2.01s.863 2.331.983 2.492c.12.16 1.698 2.593 4.114 3.637.575.248 1.023.396 1.372.507.577.183 1.102.157 1.517.095.463-.069 1.427-.583 1.628-1.146.2-.562.2-1.044.14-1.145-.06-.1-.221-.161-.462-.281z"/>
+      </svg>
+      <span>Study Group</span>
+    </div>
+    <div class="nav-tab" onclick="tap('Videos')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="23 7 16 12 23 17 23 7"/>
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+      </svg>
+      <span>Videos</span>
+    </div>
+    <div class="nav-tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      <span>Results</span>
+    </div>
+    <div class="nav-tab" onclick="tap('AI')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.66z"/>
+        <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.66z"/>
+      </svg>
+      <span>ExamGPT</span>
+    </div>
+  </div><!-- end .top-nav -->
+</div><!-- end .topbar -->
+
+<!-- Cards -->
+<div class="section-label">Quick Access</div>
+
+<div class="grid">
+
+  <div class="card c-blue" onclick="tap('Practice')">
+    <div class="card-dot"></div>
+    <div class="card-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1A56A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+    </div>
+    <div class="card-title">Practice</div>
+    <div class="card-sub">Test your knowledge</div>
+    <div class="card-arrow">›</div>
+  </div>
+
+  <div class="card c-green" onclick="tap('Notes')">
+    <div class="card-dot"></div>
+    <div class="card-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7DC242" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+      </svg>
+    </div>
+    <div class="card-title">Notes</div>
+    <div class="card-sub">Study materials</div>
+    <div class="card-arrow">›</div>
+  </div>
+
+  <div class="card c-amber" onclick="tap('Mock')">
+    <div class="card-dot"></div>
+    <div class="card-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1A56A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="1"/>
+        <line x1="9" y1="12" x2="15" y2="12"/>
+        <line x1="9" y1="16" x2="13" y2="16"/>
+      </svg>
+    </div>
+    <div class="card-title">Mock</div>
+    <div class="card-sub">Mock exams</div>
+    <div class="card-arrow">›</div>
+  </div>
+
+  <div class="card c-red" onclick="tap('Challenges')">
+    <div class="card-dot"></div>
+    <div class="card-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7DC242" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    </div>
+    <div class="card-title">Challenges</div>
+    <div class="card-sub">Daily challenges</div>
+    <div class="card-arrow">›</div>
+  </div>
+
+  <div class="card c-teal" onclick="tap('Novels')">
+    <div class="card-dot"></div>
+    <div class="card-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1A56A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      </svg>
+    </div>
+    <div class="card-title">Novels</div>
+    <div class="card-sub">Read &amp; learn</div>
+    <div class="card-arrow">›</div>
+  </div>
+
+  <div class="card c-lblue" onclick="tap('Flashcards')">
+    <div class="card-dot"></div>
+    <div class="card-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7DC242" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="4" width="20" height="14" rx="2"/>
+        <line x1="12" y1="4" x2="12" y2="18"/>
+        <line x1="7" y1="9" x2="7" y2="13"/>
+        <line x1="17" y1="9" x2="17" y2="13"/>
+      </svg>
+    </div>
+    <div class="card-title">Flashcards</div>
+    <div class="card-sub">Quick memory drills</div>
+    <div class="card-arrow">›</div>
+  </div>
+
+</div>
+
+<!-- Streak + Countdown -->
+<div class="bottom-strip">
+
+  <div class="strip-card streak">
+    <div class="strip-icon">
+      <span class="streak-emoji">🔥</span>
+    </div>
+    <div class="strip-text">
+      <span class="strip-value" id="streakVal">0</span>
+      <span class="strip-label">Day Streak</span>
+    </div>
+  </div>
+
+  <div class="strip-divider"></div>
+
+  <div class="strip-card countdown">
+    <div class="strip-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A56A0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
+    <div class="strip-text">
+      <span class="strip-value" id="countdownVal">--</span>
+      <span class="strip-label">Days to JAMB</span>
+    </div>
+  </div>
+
+</div>
+
+</div><!-- end .page -->
+
+<!-- WhatsApp Channel Modal -->
+<div class="modal-overlay" id="waModal" onclick="closeWaModal(event)">
+  <div class="modal-sheet" id="waSheet">
+    <div class="modal-handle"></div>
+    <div class="modal-confetti-zone" id="confettiZone"></div>
+    <div class="modal-emoji-burst">🎉</div>
+    <div class="modal-title">Join Our Study Community!</div>
+    <div class="modal-badge-wrap">
+      <span class="modal-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#2E7D32"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+        Official ExamDriller Channel
+      </span>
+    </div>
+    <div class="modal-desc">Get daily tips, exam updates, past questions &amp; motivation straight from the ExamDriller team. Join <strong>thousands</strong> of UTME &amp; SSCE students crushing it! 🚀</div>
+    <a class="modal-wa-btn" href="https://whatsapp.com/channel/0029Vb7aWSULtOjCZlHSHm0x" target="_blank" onclick="closeWaModalDirect()">
+      <div class="wa-icon-wrap">
+        <div class="wa-pulse"></div>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+          <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.95 7.95 0 0 1-4.077-1.117l-.292-.174-3.037.903.903-3.037-.174-.292A7.95 7.95 0 0 1 4 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8zm4.406-5.884c-.241-.12-1.427-.703-1.648-.784-.221-.08-.382-.12-.543.12-.16.241-.623.784-.764.944-.14.161-.281.181-.522.06-.241-.12-1.018-.375-1.938-1.196-.716-.638-1.2-1.426-1.34-1.667-.14-.241-.015-.371.106-.491.108-.108.241-.281.362-.422.12-.14.16-.241.241-.402.08-.16.04-.301-.02-.422-.06-.12-.543-1.308-.744-1.791-.196-.47-.396-.406-.543-.414l-.462-.008c-.16 0-.422.06-.643.301-.221.241-.843.824-.843 2.01s.863 2.331.983 2.492c.12.16 1.698 2.593 4.114 3.637.575.248 1.023.396 1.372.507.577.183 1.102.157 1.517.095.463-.069 1.427-.583 1.628-1.146.2-.562.2-1.044.14-1.145-.06-.1-.221-.161-.462-.281z"/>
+        </svg>
+      </div>
+      Follow on WhatsApp
+    </a>
+    <div class="modal-dismiss" onclick="closeWaModalDirect()">Maybe later</div>
+  </div>
+</div>
+
+<script>
+  function tap(name) {
+    if (name === 'StudyGroup') { openWaModal(); return; }
+    var routes = {
+      'Practice':   'practice/start/index.html',
+      'Mock':       'mock/index.html',
+      'Notes':      'notes/index.html',
+      'Flashcards': 'flashcards/index.html',
+      'Novels':     'novels/index.html',
+    };
+    if (routes[name]) {
+      window.location.href = routes[name];
+    } else {
+      console.log('Tapped: ' + name);
+    }
+  }
+
+  // WhatsApp Channel Modal
+  var CONFETTI_COLORS = ['#1A56A0','#7DC242','#F9AB00','#D93025','#2AACBF','#42A8D8','#FF6B6B','#FFE66D'];
+
+  function spawnConfetti() {
+    var zone = document.getElementById('confettiZone');
+    zone.innerHTML = '';
+    for (var i = 0; i < 36; i++) {
+      var p = document.createElement('div');
+      p.className = 'confetti-piece';
+      p.style.cssText = [
+        'left:' + (Math.random()*100) + '%',
+        'top:' + (Math.random()*-40) + 'px',
+        'background:' + CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+        'width:' + (6 + Math.random()*6) + 'px',
+        'height:' + (6 + Math.random()*6) + 'px',
+        'border-radius:' + (Math.random() > 0.5 ? '50%' : '2px'),
+        'animation-delay:' + (Math.random()*0.8) + 's',
+        'animation-duration:' + (1.8 + Math.random()*1.2) + 's',
+      ].join(';');
+      zone.appendChild(p);
+    }
+  }
+
+  function openWaModal() {
+    document.getElementById('waModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    spawnConfetti();
+  }
+
+  function closeWaModal(e) {
+    if (e && e.target !== document.getElementById('waModal')) return;
+    _dismissModal();
+  }
+
+  function closeWaModalDirect() {
+    setTimeout(_dismissModal, 120);
+  }
+
+  function _dismissModal() {
+    var overlay = document.getElementById('waModal');
+    var sheet   = document.getElementById('waSheet');
+    sheet.style.transition = 'transform 0.3s ease';
+    sheet.style.transform  = 'translateY(100%)';
+    overlay.style.opacity  = '0';
+    setTimeout(function() {
+      overlay.classList.remove('show');
+      sheet.style.transform  = '';
+      sheet.style.transition = '';
+      overlay.style.opacity  = '';
+      document.body.style.overflow = '';
+    }, 300);
+  }
+
+  // Dynamic greeting
+  (function() {
+    var h = new Date().getHours();
+    var period = h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : 'Evening';
+    var el = document.getElementById('greetingText');
+    if (el) el.textContent = 'Good ' + period + ', Victor 👋';
+  })();
+
+  var isActivated = false;
+  function toggleActivation() {
+    isActivated = !isActivated;
+    document.getElementById('actPill').classList.toggle('activated', isActivated);
+  }
+
+  var isDark = (localStorage.getItem('theme') || 'dark') !== 'light';
+
+  var sunSVG = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  var moonSVG = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+
+  applyTheme(isDark);
+
+  function applyTheme(dark) {
+    isDark = dark;
+    document.body.classList.toggle('dark', dark);
+    var icon = document.getElementById('themeIcon');
+    if (icon) icon.innerHTML = dark ? sunSVG : moonSVG;
+    var btn = document.getElementById('themeBtn');
+    if (btn) btn.style.background = dark ? '#2C2F38' : '#F1F3F4';
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+  }
+
+  function toggleTheme() {
+    applyTheme(!isDark);
+  }
+
+  var streak = parseInt(localStorage.getItem('streak') || '0');
+  document.getElementById('streakVal').textContent = streak;
+
+  var jamb = new Date('2027-03-20');
+  var today = new Date();
+  var diff = Math.ceil((jamb - today) / (1000 * 60 * 60 * 24));
+  document.getElementById('countdownVal').textContent = diff > 0 ? diff : '0';
+</script>
+
+</body>
+</html>
